@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Membership Form Renamer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-top: 20px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .description {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .upload-section {
+            border: 2px dashed #3498db;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: all 0.3s;
+            background: #f8fafc;
+        }
+        
+        .upload-section:hover {
+            background: #e8f4ff;
+            border-color: #2980b9;
+        }
+        
+        .upload-icon {
+            font-size: 50px;
+            color: #3498db;
+            margin-bottom: 15px;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .upload-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background 0.3s;
+            margin-top: 15px;
+        }
+        
+        .upload-btn:hover {
+            background: #2980b9;
+        }
+        
+        .process-btn {
+            background: #2ecc71;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 500;
+            transition: background 0.3s;
+            display: block;
+            margin: 30px auto;
+            width: 80%;
+            max-width: 300px;
+        }
+        
+        .process-btn:hover {
+            background: #27ae60;
+        }
+        
+        .process-btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+        
+        .file-list {
+            margin-top: 30px;
+        }
+        
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #ecf0f1;
+            transition: background 0.3s;
+        }
+        
+        .file-item:hover {
+            background: #f9f9f9;
+        }
+        
+        .file-name {
+            flex: 1;
+            font-size: 14px;
+            color: #2c3e50;
+            word-break: break-all;
+        }
+        
+        .file-status {
+            margin: 0 15px;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-pending {
+            background: #ffeaa7;
+            color: #d35400;
+        }
+        
+        .status-processing {
+            background: #81ecec;
+            color: #00cec9;
+        }
+        
+        .status-completed {
+            background: #55efc4;
+            color: #00b894;
+        }
+        
+        .status-error {
+            background: #fab1a0;
+            color: #d63031;
+        }
+        
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            display: none;
+        }
+        
+        .results h2 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .download-btn {
+            background: #9b59b6;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        
+        .download-btn:hover {
+            background: #8e44ad;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .instructions {
+            background: #fff8e1;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        
+        .instructions h3 {
+            color: #ff9800;
+            margin-bottom: 10px;
+        }
+        
+        .instructions ol {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .file-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .file-status {
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Membership Form Renamer</h1>
+    <p class="description">Upload scanned membership form PDFs to automatically rename them based on extracted names</p>
+    
+    <div class="container">
+        <div class="instructions">
+            <h3>How to use:</h3>
+            <ol>
+                <li>Upload one or more scanned membership form PDFs using the button below</li>
+                <li>Click the "Process Files" button to extract names from the forms</li>
+                <li>After processing, the files will be renamed using the format "LastName_FirstName.pdf"</li>
+                <li>Download the renamed files individually or all together as a ZIP</li>
+            </ol>
+        </div>
+        
+        <div class="upload-section" id="dropZone">
+            <div class="upload-icon">📄</div>
+            <p>Drag & drop your PDF files here or</p>
+            <button class="upload-btn" onclick="document.getElementById('fileInput').click()">Choose Files</button>
+            <input type="file" id="fileInput" class="file-input" accept=".pdf" multiple>
+        </div>
+        
+        <div class="file-list" id="fileList">
+            <!-- File items will be added here dynamically -->
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Processing files...</p>
+        </div>
+        
+        <button class="process-btn" id="processBtn" disabled>Process Files</button>
+        
+        <div class="results" id="results">
+            <h2>Processed Files</h2>
+            <div id="resultList"></div>
+        </div>
+    </div>
+
+    <script>
+        // Set PDF.js worker path
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.worker.min.js';
+
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const processBtn = document.getElementById('processBtn');
+        const results = document.getElementById('results');
+        const resultList = document.getElementById('resultList');
+        const loading = document.getElementById('loading');
+        const dropZone = document.getElementById('dropZone');
+        
+        let uploadedFiles = [];
+        
+        // Event listeners
+        fileInput.addEventListener('change', handleFileSelect);
+        processBtn.addEventListener('click', processFiles);
+        dropZone.addEventListener('dragover', handleDragOver);
+        dropZone.addEventListener('drop', handleDrop);
+        
+        // Handle drag over event
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.style.background = '#e3f2fd';
+        }
+        
+        // Handle drop event
+        function handleDrop(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.style.background = '#f8fafc';
+            
+            const files = e.dataTransfer.files;
+            handleFiles(files);
+        }
+        
+        // Handle file selection
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            handleFiles(files);
+        }
+        
+        // Process selected files
+        function handleFiles(files) {
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (file.type === 'application/pdf') {
+                    uploadedFiles.push(file);
+                    addFileToList(file);
+                }
+            }
+            
+            if (uploadedFiles.length > 0) {
+                processBtn.disabled = false;
+            }
+        }
+        
+        // Add file to the list UI
+        function addFileToList(file) {
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.innerHTML = `
+                <div class="file-name">${file.name}</div>
+                <div class="file-status status-pending">Pending</div>
+            `;
+            fileList.appendChild(fileItem);
+        }
+        
+        // Process all files
+        async function processFiles() {
+            loading.style.display = 'block';
+            processBtn.disabled = true;
+            results.style.display = 'none';
+            resultList.innerHTML = '';
+            
+            const processedFiles = [];
+            
+            for (let i = 0; i < uploadedFiles.length; i++) {
+                const file = uploadedFiles[i];
+                const fileItem = fileList.children[i];
+                fileItem.querySelector('.file-status').className = 'file-status status-processing';
+                fileItem.querySelector('.file-status').textContent = 'Processing';
+                
+                try {
+                    const text = await extractTextFromPDF(file);
+                    const { firstName, lastName } = extractNames(text);
+                    
+                    if (firstName && lastName) {
+                        const newFileName = `${lastName}_${firstName}.pdf`;
+                        processedFiles.push({
+                            originalFile: file,
+                            newFileName: newFileName,
+                            firstName: firstName,
+                            lastName: lastName
+                        });
+                        
+                        fileItem.querySelector('.file-status').className = 'file-status status-completed';
+                        fileItem.querySelector('.file-status').textContent = 'Completed';
+                    } else {
+                        throw new Error('Could not extract names from PDF');
+                    }
+                } catch (error) {
+                    console.error('Error processing file:', error);
+                    fileItem.querySelector('.file-status').className = 'file-status status-error';
+                    fileItem.querySelector('.file-status').textContent = 'Error';
+                }
+            }
+            
+            loading.style.display = 'none';
+            displayResults(processedFiles);
+        }
+        
+        // Extract text from PDF
+        async function extractTextFromPDF(file) {
+            return new Promise((resolve, reject) => {
+                const fileReader = new FileReader();
+                
+                fileReader.onload = async function() {
+                    try {
+                        const typedArray = new Uint8Array(this.result);
+                        const pdf = await pdfjsLib.getDocument(typedArray).promise;
+                        let text = '';
+                        
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            const textContent = await page.getTextContent();
+                            text += textContent.items.map(item => item.str).join(' ') + ' ';
+                        }
+                        
+                        resolve(text);
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                
+                fileReader.onerror = reject;
+                fileReader.readAsArrayBuffer(file);
+            });
+        }
+        
+        // Extract names from text (simulated)
+        function extractNames(text) {
+            // This is a simplified example - in a real application, you would need
+            // more sophisticated logic to find and extract names from the text
+            
+            // Convert to lowercase for easier matching
+            const lowerText = text.toLowerCase();
+            
+            // Look for common label patterns
+            let firstName = '';
+            let lastName = '';
+            
+            // Try to find first name
+            const firstNameMatch = lowerText.match(/(first name|given name|forename)[\s:]*([a-z]+)/i);
+            if (firstNameMatch && firstNameMatch[2]) {
+                firstName = capitalize(firstNameMatch[2]);
+            }
+            
+            // Try to find last name
+            const lastNameMatch = lowerText.match(/(last name|surname|family name)[\s:]*([a-z]+)/i);
+            if (lastNameMatch && lastNameMatch[2]) {
+                lastName = capitalize(lastNameMatch[2]);
+            }
+            
+            // If not found with labels, try to extract using other patterns
+            if (!firstName || !lastName) {
+                // This is a fallback method - would need to be customized based on your form structure
+                const nameMatch = lowerText.match(/([a-z]+)[\s,]+([a-z]+)(?=[\s]*[0-9@]|$)/i);
+                if (nameMatch) {
+                    if (!firstName) firstName = capitalize(nameMatch[1]);
+                    if (!lastName) lastName = capitalize(nameMatch[2]);
+                }
+            }
+            
+            // Final fallback - use placeholder names if extraction failed
+            if (!firstName) firstName = 'FirstName';
+            if (!lastName) lastName = 'LastName';
+            
+            return { firstName, lastName };
+        }
+        
+        // Capitalize first letter of a string
+        function capitalize(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+        
+        // Display results
+        function displayResults(processedFiles) {
+            if (processedFiles.length === 0) {
+                resultList.innerHTML = '<p>No files were successfully processed.</p>';
+                results.style.display = 'block';
+                return;
+            }
+            
+            resultList.innerHTML = '';
+            
+            processedFiles.forEach(file => {
+                const resultItem = document.createElement('div');
+                resultItem.className = 'result-item';
+                resultItem.innerHTML = `
+                    <div>${file.originalFile.name} → <strong>${file.newFileName}</strong></div>
+                    <button class="download-btn" data-file="${file.originalFile.name}">Download</button>
+                `;
+                resultList.appendChild(resultItem);
+            });
+            
+            // Add event listeners to download buttons
+            document.querySelectorAll('.download-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const originalFileName = this.getAttribute('data-file');
+                    const file = processedFiles.find(f => f.originalFile.name === originalFileName);
+                    if (file) {
+                        downloadFile(file.originalFile, file.newFileName);
+                    }
+                });
+            });
+            
+            results.style.display = 'block';
+        }
+        
+        // Download file with new name
+        function downloadFile(file, newFileName) {
+            const url = URL.createObjectURL(file);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = newFileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
